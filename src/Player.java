@@ -1,9 +1,5 @@
 import java.util.*;
 
-/**
- * Auto-generated code below aims at helping you parse
- * the standard input according to the problem statement.
- **/
 class CubicCoord {
 
     private int x;
@@ -34,6 +30,11 @@ class CubicCoord {
 }
 
 class OffsetCoord {
+
+    private final static int[][] DIRECTIONS_EVEN = new int[][] { { 1, 0 }, { 0, -1 }, { -1, -1 }, { -1, 0 }, { -1, 1 }, { 0, 1 } };
+    private final static int[][] DIRECTIONS_ODD = new int[][] { { 1, 0 }, { 1, -1 }, { 0, -1 }, { -1, 0 }, { 0, 1 }, { 1, 1 } };
+    private static final int MAP_WIDTH = 23;
+    private static final int MAP_HEIGHT = 21;
 
     private int col;
     private int row;
@@ -67,6 +68,22 @@ class OffsetCoord {
         int result = col;
         result = 31 * result + row;
         return result;
+    }
+
+    public OffsetCoord neighbor(int orientation) {
+        int newRow, newCol;
+        if (this.row % 2 == 1) {
+            newRow = this.row + DIRECTIONS_ODD[orientation][1];
+            newCol = this.col + DIRECTIONS_ODD[orientation][0];
+        } else {
+            newRow = this.row + DIRECTIONS_EVEN[orientation][1];
+            newCol = this.col + DIRECTIONS_EVEN[orientation][0];
+        }
+        return new OffsetCoord(newCol, newRow);
+    }
+
+    boolean isInsideMap() {
+        return col >= 0 && col < MAP_WIDTH && row >= 0 && row < MAP_HEIGHT;
     }
 }
 
@@ -103,14 +120,14 @@ class Entity {
     }
 
     public int distance(Entity t) {
-        return toCub().distance(t.toCub());
+        return toCube().distance(t.toCube());
     }
 
     public OffsetCoord toCoord() {
         return new OffsetCoord(getCol(), getRow());
     }
 
-    private CubicCoord toCub() {
+    private CubicCoord toCube() {
 
         int x = col - (row - (row & 1)) / 2;
         int z = row;
@@ -137,6 +154,7 @@ class Rum extends Entity {
 
 class Ship extends Entity {
 
+    public static final int MAX_SHIP_SPEED = 2;
     private int owner;
     private int quant;
     private int speed;
@@ -148,6 +166,10 @@ class Ship extends Entity {
         this.quant = quant;
         this.speed = speed;
         this.direction = direction;
+    }
+
+    public Ship(final Ship ship) {
+        this(ship.getId(), ship.getCol(), ship.getRow(), ship.getOwner(), ship.getQuant(), ship.getSpeed(), ship.getDirection());
     }
 
     public int getOwner() {
@@ -226,10 +248,58 @@ class Ship extends Entity {
         }
         return false;
     }
+
 }
 
 
 class Player {
+
+    List<Ship> ships;
+
+    private void moveShip(Ship ship) {
+        // ---
+        // Go forward
+        // ---
+        for (int i = 1; i <= Ship.MAX_SHIP_SPEED; i++) {
+            final Ship original = new Ship(ship);
+            if (i > ship.getSpeed()) {
+                continue;
+            }
+
+            OffsetCoord newCoordinate = ship.toCoord().neighbor(ship.getDirection());
+            if (newCoordinate.isInsideMap()) {
+                // Set new coordinate.
+                ship.setCol(newCoordinate.getCol());
+                ship.setRow(newCoordinate.getRow());
+            } else {
+                // Stop ship!
+                ship.setSpeed(0);
+            }
+
+            // Check ship and obstacles collisions
+            List<Ship> collisions = new ArrayList<>();
+            boolean collisionDetected = true;
+            while (collisionDetected) {
+                collisionDetected = false;
+
+                for (Ship s : this.ships) {
+                    if (ship.getId() != s.getId() && ship.overlap(s)) {
+                        collisions.add(ship);
+                    }
+                }
+
+                for (Ship s : collisions) {
+                    // Revert last move
+                    ship.setRow(original.getRow());
+                    ship.setCol(original.getCol());
+                    ship.setDirection(original.getDirection());
+                    ship.setSpeed(0);
+                    collisionDetected = true;
+                }
+                collisions.clear();
+            }
+        }
+    }
 
     public static void main(String args[]) {
         Scanner in = new Scanner(System.in);
