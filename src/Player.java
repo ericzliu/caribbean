@@ -90,13 +90,11 @@ class OffsetCoord {
 class Entity {
 
     private int id;
-    private int col;
-    private int row;
+    private OffsetCoord location;
 
     public Entity(int id, int col, int row) {
         this.id = id;
-        this.col = col;
-        this.row = row;
+        this.location = new OffsetCoord(col, row);
     }
 
     public int getId() {
@@ -104,35 +102,29 @@ class Entity {
     }
 
     public int getCol() {
-        return col;
-    }
-
-    public void setCol(int col) {
-        this.col = col;
+        return location.getCol();
     }
 
     public int getRow() {
-        return row;
+        return location.getRow();
     }
 
-    public void setRow(int row) {
-        this.row = row;
+    public void setLocation(int col, int row) {
+        this.location = new OffsetCoord(col, row);
     }
 
     public int distance(Entity t) {
-        return toCube().distance(t.toCube());
+        return toCubic().distance(t.toCubic());
     }
 
-    public OffsetCoord toCoord() {
-        return new OffsetCoord(getCol(), getRow());
+    public OffsetCoord getCoord() {
+        return location;
     }
 
-    private CubicCoord toCube() {
-
-        int x = col - (row - (row & 1)) / 2;
-        int z = row;
+    private CubicCoord toCubic() {
+        int x = getCol() - (getRow() - (getCol() & 1)) / 2;
+        int z = getRow();
         int y = -x - z;
-
         return new CubicCoord(x, y, z);
     }
 
@@ -208,7 +200,7 @@ class Ship extends Entity {
         int row = getRow();
         int offOdd = (row % 2 == 1) ? 1 : 0;
         List<OffsetCoord> positions = new ArrayList<>();
-        positions.add(this.toCoord());
+        positions.add(this.getCoord());
         switch (direction) {
             case 0:
             case 3: {
@@ -236,7 +228,7 @@ class Ship extends Entity {
 
     public boolean overlap(Entity entity) {
         List<OffsetCoord> coords = getPositions();
-        return coords.contains(entity.toCoord());
+        return coords.contains(entity.getCoord());
     }
 
     public boolean overlap(Ship entity) {
