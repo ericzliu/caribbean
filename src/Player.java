@@ -197,32 +197,10 @@ class Ship extends Entity {
     }
 
     public List<OffsetCoord> getPositions() {
-        int row = getRow();
-        int offOdd = (row % 2 == 1) ? 1 : 0;
         List<OffsetCoord> positions = new ArrayList<>();
-        positions.add(this.getCoord());
-        switch (direction) {
-            case 0:
-            case 3: {
-                positions.add(new OffsetCoord(getCol() + 1, getRow()));
-                positions.add(new OffsetCoord(getCol() - 1, getRow()));
-                break;
-            }
-            case 1:
-            case 4: {
-                positions.add(new OffsetCoord(getCol() + offOdd, getRow() - 1));
-                positions.add(new OffsetCoord(getCol() - 1 + offOdd, getRow() + 1));
-                break;
-            }
-            case 2:
-            case 5: {
-                positions.add(new OffsetCoord(getCol() - 1 + offOdd, getRow() - 1));
-                positions.add(new OffsetCoord(getCol() + offOdd, getRow() + 1));
-                break;
-            }
-            default:
-                break;
-        }
+        positions.add(getCoord().neighbor(direction));
+        positions.add(getCoord());
+        positions.add(getCoord().neighbor((direction + 3) % 6));
         return positions;
     }
 
