@@ -91,7 +91,6 @@ class OffsetCoord {
     }
 }
 
-// maybe entity should inherit from class OffsetCoord?
 class Entity {
 
     private int id;
