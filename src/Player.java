@@ -33,6 +33,7 @@ class CubicCoord {
     }
 }
 
+// tucude and distance shall be implemented in coord classes
 class OffsetCoord {
 
     private final static int[][] DIRECTIONS_EVEN = new int[][] { { 1, 0 }, { 0, -1 }, { -1, -1 }, { -1, 0 }, { -1, 1 }, { 0, 1 } };
