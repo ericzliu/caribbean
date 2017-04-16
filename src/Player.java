@@ -97,6 +97,11 @@ class Entity {
         this.location = new OffsetCoord(col, row);
     }
 
+    public Entity(int id, final OffsetCoord loc) {
+        this.id = id;
+        this.location = loc;
+    }
+
     public int getId() {
         return id;
     }
@@ -111,6 +116,10 @@ class Entity {
 
     public void setLocation(int col, int row) {
         this.location = new OffsetCoord(col, row);
+    }
+
+    public void setLocation(final OffsetCoord loc) {
+        this.location = loc;
     }
 
     public int distance(Entity t) {
