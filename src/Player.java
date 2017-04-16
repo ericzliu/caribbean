@@ -35,6 +35,11 @@ class CubicCoord {
 
 class OffsetCoord {
 
+    private final static int[][] DIRECTIONS_EVEN = new int[][] { { 1, 0 }, { 0, -1 }, { -1, -1 }, { -1, 0 }, { -1, 1 }, { 0, 1 } };
+    private final static int[][] DIRECTIONS_ODD = new int[][] { { 1, 0 }, { 1, -1 }, { 0, -1 }, { -1, 0 }, { 0, 1 }, { 1, 1 } };
+    private static final int MAP_WIDTH = 23;
+    private static final int MAP_HEIGHT = 21;
+
     private int col;
     private int row;
 
@@ -68,19 +73,38 @@ class OffsetCoord {
         result = 31 * result + row;
         return result;
     }
+
+    public OffsetCoord neighbor(int orientation) {
+        int newRow, newCol;
+        if (this.row % 2 == 1) {
+            newRow = this.row + DIRECTIONS_ODD[orientation][1];
+            newCol = this.col + DIRECTIONS_ODD[orientation][0];
+        } else {
+            newRow = this.row + DIRECTIONS_EVEN[orientation][1];
+            newCol = this.col + DIRECTIONS_EVEN[orientation][0];
+        }
+        return new OffsetCoord(newCol, newRow);
+    }
+
+    boolean isInsideMap() {
+        return col >= 0 && col < MAP_WIDTH && row >= 0 && row < MAP_HEIGHT;
+    }
 }
 
 // maybe entity should inherit from class OffsetCoord?
 class Entity {
 
     private int id;
-    private int col;
-    private int row;
+    private OffsetCoord location;
 
     public Entity(int id, int col, int row) {
         this.id = id;
-        this.col = col;
-        this.row = row;
+        this.location = new OffsetCoord(col, row);
+    }
+
+    public Entity(int id, final OffsetCoord loc) {
+        this.id = id;
+        this.location = loc;
     }
 
     public int getId() {
@@ -88,35 +112,33 @@ class Entity {
     }
 
     public int getCol() {
-        return col;
-    }
-
-    public void setCol(int col) {
-        this.col = col;
+        return location.getCol();
     }
 
     public int getRow() {
-        return row;
+        return location.getRow();
     }
 
-    public void setRow(int row) {
-        this.row = row;
+    public void setLocation(int col, int row) {
+        this.location = new OffsetCoord(col, row);
+    }
+
+    public void setLocation(final OffsetCoord loc) {
+        this.location = loc;
     }
 
     public int distance(Entity t) {
-        return toCub().distance(t.toCub());
+        return toCubic().distance(t.toCubic());
     }
 
-    public OffsetCoord toCoord() {
-        return new OffsetCoord(getCol(), getRow());
+    public OffsetCoord getCoord() {
+        return location;
     }
 
-    private CubicCoord toCub() {
-
-        int x = col - (row - (row & 1)) / 2;
-        int z = row;
+    private CubicCoord toCubic() {
+        int x = getCol() - (getRow() - (getCol() & 1)) / 2;
+        int z = getRow();
         int y = -x - z;
-
         return new CubicCoord(x, y, z);
     }
 
@@ -190,38 +212,16 @@ class Ship extends Entity {
     }
 
     public List<OffsetCoord> getPositions() {
-        int row = getRow();
-        int offOdd = (row % 2 == 1) ? 1 : 0;
         List<OffsetCoord> positions = new ArrayList<>();
-        positions.add(this.toCoord());
-        switch (direction) {
-            case 0:
-            case 3: {
-                positions.add(new OffsetCoord(getCol() + 1, getRow()));
-                positions.add(new OffsetCoord(getCol() - 1, getRow()));
-                break;
-            }
-            case 1:
-            case 4: {
-                positions.add(new OffsetCoord(getCol() + offOdd, getRow() - 1));
-                positions.add(new OffsetCoord(getCol() - 1 + offOdd, getRow() + 1));
-                break;
-            }
-            case 2:
-            case 5: {
-                positions.add(new OffsetCoord(getCol() - 1 + offOdd, getRow() - 1));
-                positions.add(new OffsetCoord(getCol() + offOdd, getRow() + 1));
-                break;
-            }
-            default:
-                break;
-        }
+        positions.add(getCoord().neighbor(direction));
+        positions.add(getCoord());
+        positions.add(getCoord().neighbor((direction + 3) % 6));
         return positions;
     }
 
     public boolean overlap(Entity entity) {
         List<OffsetCoord> coords = getPositions();
-        return coords.contains(entity.toCoord());
+        return coords.contains(entity.getCoord());
     }
 
     public boolean overlap(Ship entity) {
