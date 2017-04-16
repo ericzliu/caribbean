@@ -323,6 +323,7 @@ class Player {
                 if (ship.overlap(s)) {
                     ship.setLocation(oldLocation);
                     ship.setSpeed(0);
+                    break;
                 }
             }
         }
