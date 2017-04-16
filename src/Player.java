@@ -35,6 +35,11 @@ class CubicCoord {
 
 class OffsetCoord {
 
+    private final static int[][] DIRECTIONS_EVEN = new int[][] { { 1, 0 }, { 0, -1 }, { -1, -1 }, { -1, 0 }, { -1, 1 }, { 0, 1 } };
+    private final static int[][] DIRECTIONS_ODD = new int[][] { { 1, 0 }, { 1, -1 }, { 0, -1 }, { -1, 0 }, { 0, 1 }, { 1, 1 } };
+    private static final int MAP_WIDTH = 23;
+    private static final int MAP_HEIGHT = 21;
+
     private int col;
     private int row;
 
@@ -67,6 +72,22 @@ class OffsetCoord {
         int result = col;
         result = 31 * result + row;
         return result;
+    }
+
+    public OffsetCoord neighbor(int orientation) {
+        int newRow, newCol;
+        if (this.row % 2 == 1) {
+            newRow = this.row + DIRECTIONS_ODD[orientation][1];
+            newCol = this.col + DIRECTIONS_ODD[orientation][0];
+        } else {
+            newRow = this.row + DIRECTIONS_EVEN[orientation][1];
+            newCol = this.col + DIRECTIONS_EVEN[orientation][0];
+        }
+        return new OffsetCoord(newCol, newRow);
+    }
+
+    boolean isInsideMap() {
+        return col >= 0 && col < MAP_WIDTH && row >= 0 && row < MAP_HEIGHT;
     }
 }
 
@@ -175,32 +196,10 @@ class Ship extends Entity {
     }
 
     public List<OffsetCoord> getPositions() {
-        int row = getRow();
-        int offOdd = (row % 2 == 1) ? 1 : 0;
         List<OffsetCoord> positions = new ArrayList<>();
-        positions.add(this.getCoord());
-        switch (direction) {
-            case 0:
-            case 3: {
-                positions.add(new OffsetCoord(getCol() + 1, getRow()));
-                positions.add(new OffsetCoord(getCol() - 1, getRow()));
-                break;
-            }
-            case 1:
-            case 4: {
-                positions.add(new OffsetCoord(getCol() + offOdd, getRow() - 1));
-                positions.add(new OffsetCoord(getCol() - 1 + offOdd, getRow() + 1));
-                break;
-            }
-            case 2:
-            case 5: {
-                positions.add(new OffsetCoord(getCol() - 1 + offOdd, getRow() - 1));
-                positions.add(new OffsetCoord(getCol() + offOdd, getRow() + 1));
-                break;
-            }
-            default:
-                break;
-        }
+        positions.add(getCoord().neighbor(direction));
+        positions.add(getCoord());
+        positions.add(getCoord().neighbor((direction + 3) % 6));
         return positions;
     }
 
