@@ -70,6 +70,7 @@ class OffsetCoord {
     }
 }
 
+// maybe entity should inherit from class OffsetCoord?
 class Entity {
 
     private int id;
@@ -132,6 +133,12 @@ class Rum extends Entity {
 
     public int getQuant() {
         return quant;
+    }
+}
+
+class Mine extends Entity{
+    public Mine(int id, int col, int row) {
+        super(id, col, row);
     }
 }
 
@@ -225,6 +232,52 @@ class Ship extends Entity {
             }
         }
         return false;
+    }
+
+    public  boolean hitWall() {
+        // test if in current status, any part of the ship is outside the grid
+        // getPositions, then check
+    }
+
+    public Ship nextStatus(String move) {
+        switch (move) {
+            case "PORT":
+                // direction = (direction + 1) % 6
+                // move at previous speed in the new direction, that is change direction, then change col, row
+                break;
+            case "STARBOARD":
+                // direction = (direction - 1) % 6
+                // change direction first, then change row
+                break;
+            case "SLOWER":
+                // speed = max(0, speed - 1)
+                // move at new speed in the same direction, that is change col, row alone
+                break;
+            case "FASTER":
+                // speed = min(2, speed -1)
+                // move at new speed in the same direction, that is change col, row alone
+                break;
+            case "WAIT":
+                // move at same speed in the same direction
+                break;
+            default:
+                break;
+        }
+    }
+
+    public List<String> bestPath(OffsetCoord t, List<Mine> mines) {
+        // returns a squence of best move (PORT, STARBOARD,...) to reach the give destination t
+        // visited = set()
+        // queue =  PriorityQueue((self, [empty move], self.distance(t))) distance to t as priority function
+        // while queue:
+        //     st = queue.pop() gives the status (class Ship) with smallest distance
+        //     if st[0].overlap(t):
+        //         return st[1] that is the move squence
+        //     for move in [PORT, STARBOARD, SLOWER....]:
+        //          nst = st[0].nextStatus(move)
+        //          if nst not in visited and not nst.overlap() with any m in mines:
+        //              queue.add(nst, [empty move, move], nst.distance(t))
+        // return 'unreachable'
     }
 }
 
